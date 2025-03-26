@@ -319,7 +319,7 @@ func getDataFromLogs(bodyBytes []byte) ([]commonmodel.Sample, error) {
 		return nil, nil
 	}
 	var logData commonmodel.LabelSet
-	logData["log"] = body.Data.Result
+	logData["log"] = string(bodyBytes)
 	return []commonmodel.Sample{
 		Metric: logData,
 		Value:  commonmodel.SampleValue(len(body.Data.Result)),
