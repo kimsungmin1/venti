@@ -318,7 +318,10 @@ func getDataFromLogs(bodyBytes []byte) ([]commonmodel.Sample, error) {
 	if len(body.Data.Result) == 0 {
 		return nil, nil
 	}
-	return []commonmodel.Sample{{Value: commonmodel.SampleValue(len(body.Data.Result))}}, nil
+	return []commonmodel.Sample{
+		Metric: commonmodel.Metric{"log": body.Data.Result},
+		Value:  commonmodel.SampleValue(len(body.Data.Result)),
+	}, nil
 }
 
 func getDataFromVector(bodyBytes []byte) ([]commonmodel.Sample, error) {
