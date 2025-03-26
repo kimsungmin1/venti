@@ -222,6 +222,7 @@ func (s *AlertingService) evalAlertingRuleSample(ar *AlertingRule, sample common
 	if elapsed >= 0 {
 		state = StateFiring
 	}
+	fmt.Println("elapsed:", elapsed)
 	alert := &Alert{
 		State:       state,
 		CreatedAt:   createdAt,
@@ -230,6 +231,8 @@ func (s *AlertingService) evalAlertingRuleSample(ar *AlertingRule, sample common
 		Annotations: annotations,
 	}
 	ar.Active[signature] = alert
+
+	fmt.Printf("evaluation alert : %v", alert)
 
 	// show log if severity exists and not silence
 	severity, ok := alert.Annotations["severity"]
