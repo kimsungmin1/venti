@@ -45,6 +45,8 @@ func (r *RemoteService) GET(ctx context.Context, datasource *model.Datasource, a
 	u.RawQuery = rawQuery
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
+
+	fmt.Println("get alert data: " + u.String())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		// test unreachable
@@ -68,5 +70,6 @@ func (r *RemoteService) GET(ctx context.Context, datasource *model.Datasource, a
 	if code != 200 {
 		logger.Debugf("code=%d url=%s", code, u.String())
 	}
+	fmt.Println("body from request: " + string(bodyBytes))
 	return code, string(bodyBytes), nil
 }
