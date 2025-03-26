@@ -316,9 +316,9 @@ func getDataFromLogs(bodyBytes []byte) ([]commonmodel.Sample, error) {
 		return []commonmodel.Sample{}, fmt.Errorf("unmarshal err: %w", err)
 	}
 	if len(body.Data.Result) == 0 {
-		return []commonmodel.Sample{}, nil
+		return nil, nil
 	}
-	return []commonmodel.Sample{Value: len(body.Data.Result)}, nil
+	return []commonmodel.Sample{{Value: commonmodel.SampleValue(len(body.Data.Result))}}, nil
 }
 
 func getDataFromVector(bodyBytes []byte) ([]commonmodel.Sample, error) {
