@@ -301,7 +301,7 @@ func (s *AlertingService) queryRule(rule model.Rule, datasource model.Datasource
 	return samples, nil
 }
 
-func getDataFromLogs(bodyBytes []byte) ([]map[string]string, error) {
+func getDataFromLogs(bodyBytes []byte) ([]commonmodel.Sample, error) {
 	type Data struct {
 		ResultType string              `json:"resultType"`
 		Result     []map[string]string `json:"result"`
@@ -315,7 +315,10 @@ func getDataFromLogs(bodyBytes []byte) ([]map[string]string, error) {
 	if err != nil {
 		return []commonmodel.Sample{}, fmt.Errorf("unmarshal err: %w", err)
 	}
-	return body.Data.Result, nil
+	if len(body.Data.Result) == 0 {
+		return []commonmodel.Sample{}, nil
+	}
+	return []commonmodel.Sample{Value: len(body.Data.Result)}, nil
 }
 
 func getDataFromVector(bodyBytes []byte) ([]commonmodel.Sample, error) {
