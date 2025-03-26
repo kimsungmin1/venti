@@ -153,6 +153,7 @@ func (s *AlertingService) evalAlertingRule(ar *AlertingRule, datasources []model
 			logger.Warnf("evalAlertingRuleDatasource err: %s", err)
 		}
 	}
+
 	for key, alert := range ar.Active {
 		// remove old alerts
 		if alert.UpdatedAt != evalTime {
@@ -286,12 +287,14 @@ func (s *AlertingService) queryRule(rule model.Rule, datasource model.Datasource
 	resultType := fastjson.GetString(bodyBytes, "data", "resultType")
 	if resultType == "logs" {
 		samples, err := getDataFromLogs(bodyBytes)
+		fmt.Printf("sample:%v", samples)
 		if err != nil {
 			return []commonmodel.Sample{}, fmt.Errorf("getDataFromLogs err: %w", err)
 		}
 		return samples, nil
 	}
 	samples, err := getDataFromVector(bodyBytes)
+	fmt.Printf("sample:%v", samples)
 	if err != nil {
 		return []commonmodel.Sample{}, fmt.Errorf("getDataFromVector err: %w", err)
 	}
