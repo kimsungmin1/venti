@@ -321,10 +321,10 @@ func getDataFromLogs(bodyBytes []byte) ([]commonmodel.Sample, error) {
 	var logData map[string]string
 	logData["log"] = string(bodyBytes)
 
-	return []commonmodel.Sample{
+	return []commonmodel.Sample{{
 		Metric: logData,
 		Value:  commonmodel.SampleValue(len(body.Data.Result)),
-	}, nil
+	}}, nil
 }
 
 func getDataFromVector(bodyBytes []byte) ([]commonmodel.Sample, error) {
