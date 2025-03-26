@@ -331,6 +331,7 @@ func getDataFromVector(bodyBytes []byte) ([]commonmodel.Sample, error) {
 
 func (s *AlertingService) sendFires(fires []Fire) error {
 	logger.Infof("sending %d fires...", len(fires))
+	logger.Infof("%v", fires)
 	pbytes, err := json.Marshal(fires)
 	if err != nil || fakeErr1 {
 		return fmt.Errorf("marshal err: %w", err)
