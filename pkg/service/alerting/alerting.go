@@ -153,7 +153,6 @@ func (s *AlertingService) evalAlertingRule(ar *AlertingRule, datasources []model
 			logger.Warnf("evalAlertingRuleDatasource err: %s", err)
 		}
 	}
-
 	for key, alert := range ar.Active {
 		// remove old alerts
 		if alert.UpdatedAt != evalTime {
@@ -223,7 +222,6 @@ func (s *AlertingService) evalAlertingRuleSample(ar *AlertingRule, sample common
 	if elapsed >= 0 {
 		state = StateFiring
 	}
-	fmt.Println("elapsed:", elapsed)
 	alert := &Alert{
 		State:       state,
 		CreatedAt:   createdAt,
@@ -232,8 +230,6 @@ func (s *AlertingService) evalAlertingRuleSample(ar *AlertingRule, sample common
 		Annotations: annotations,
 	}
 	ar.Active[signature] = alert
-
-	fmt.Printf("evaluation alert : %v", alert)
 
 	// show log if severity exists and not silence
 	severity, ok := alert.Annotations["severity"]
@@ -287,14 +283,12 @@ func (s *AlertingService) queryRule(rule model.Rule, datasource model.Datasource
 	resultType := fastjson.GetString(bodyBytes, "data", "resultType")
 	if resultType == "logs" {
 		samples, err := getDataFromLogs(bodyBytes)
-		fmt.Printf("sample:%v", samples)
 		if err != nil {
 			return []commonmodel.Sample{}, fmt.Errorf("getDataFromLogs err: %w", err)
 		}
 		return samples, nil
 	}
 	samples, err := getDataFromVector(bodyBytes)
-	fmt.Printf("sample:%v", samples)
 	if err != nil {
 		return []commonmodel.Sample{}, fmt.Errorf("getDataFromVector err: %w", err)
 	}
@@ -310,17 +304,39 @@ func getDataFromLogs(bodyBytes []byte) ([]commonmodel.Sample, error) {
 		Status string `json:"status"`
 		Data   Data   `json:"data"`
 	}
+	type StructuredLog struct {
+		Data map[string]string `json:"log"`
+	}
+
 	var body Body
 	err := json.Unmarshal(bodyBytes, &body)
 	if err != nil {
 		return []commonmodel.Sample{}, fmt.Errorf("unmarshal err: %w", err)
 	}
+
 	if len(body.Data.Result) == 0 {
-		return nil, nil
+		return []commonmodel.Sample{}, nil
 	}
 
-	logData := commonmodel.Metric{}
-	logData["log"] = commonmodel.LabelValue(string(bodyBytes))
+	var logData = make(map[commonmodel.LabelName]commonmodel.LabelValue)
+	for _, token := range body.Data.Result {
+		for k, v := range token {
+			logData[commonmodel.LabelName(k)] = commonmodel.LabelValue(v)
+		}
+	}
+	//logData["logAll"] = commonmodel.LabelValue(string(bodyBytes))
+
+	if logData["log"] != "" {
+		var structuredLogData StructuredLog
+		err := json.Unmarshal([]byte(logData["log"]), &structuredLogData)
+		if err != nil {
+			fmt.Println("log is not structured")
+		} else {
+			for k, v := range structuredLogData.Data {
+				logData[commonmodel.LabelName(k)] = commonmodel.LabelValue(v)
+			}
+		}
+	}
 
 	return []commonmodel.Sample{{
 		Metric: logData,
@@ -347,7 +363,6 @@ func getDataFromVector(bodyBytes []byte) ([]commonmodel.Sample, error) {
 
 func (s *AlertingService) sendFires(fires []Fire) error {
 	logger.Infof("sending %d fires...", len(fires))
-	logger.Infof("%v", fires)
 	pbytes, err := json.Marshal(fires)
 	if err != nil || fakeErr1 {
 		return fmt.Errorf("marshal err: %w", err)
